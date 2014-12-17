@@ -88,6 +88,17 @@ class SDreader(object):
     # Converts the SD file to tabular data
     # Should eventually include converting the SD structure to
     # a smiles string
+
+    def outputSDF(self,filename):
+        try:
+            f = open(filename,'wb')
+            for record in self.records:
+                f.write(record)
+        except IOError as e:
+            print('Error opening file {}:{}'.format(filename,e))
+        finally:
+            f.close()
+        
             
 ## Testing code below. Uncomment to test        
 #testfile = "E:/Documents/Computational/ChemInformatics/ChelatingFragments.sdf"
@@ -106,5 +117,7 @@ class SDreader(object):
 #
 # Testing readRecords
 source = "E:/Documents/Projects/Forma/HDAC/oxazolones_121514.sdf"
+sink = "E:/Documents/Projects/Forma/HDAC/oxazolones_121514_update.sdf"
 S = SDreader(source)
 print('found {0} records in {1}'.format(S.numRecords(),source))
+S.outputSDF(sink)
