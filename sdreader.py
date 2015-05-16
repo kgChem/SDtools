@@ -1,5 +1,6 @@
 #! C:/Python27/python.exe
 #
+import re
 class SDreader(object):
     """
     SDreader objects have methods that read and parses SD files to text
@@ -61,7 +62,12 @@ class SDreader(object):
         
     # Read all field codes in the file and update the .fields with the update method
     def readFields(self):
-        pass
+        pat=re.compile("<.*>")
+        with open(self.filename,"r") as f:
+            for line in f:
+                hit= pat.search(line)
+                if hit and (not hit.group(0) in self.fields):
+                    self.fields.append(hit.group(0))
 
     # Tells the number of records if already known. If not known, loops through the file
     # and counts number of records
@@ -98,26 +104,32 @@ class SDreader(object):
             print('Error opening file {}:{}'.format(filename,e))
         finally:
             f.close()
-        
+#not working yet
+    def updateField(self,recIndex,fieldname,newValue):
+        if (recIndex < 0 or recIndex > self.nRecords):
+            print('Error: recordIndex {} outside range 0-{}'.format(recIndex,self.nRecords))
+            raise ValueError
+        tag=re.search(fieldname,self.records[recIndex])
+        if tag:
+            oldData = re.search('.*>',(self.records[recIndex])[tag.end(0)+1:],re.DOTALL)
+            newData = "\r\n"+newValue+"\r\n>"
+            self.records[recIndex]=re.sub(oldData.group(0),newData,self.records[recIndex],count=1)
+        else:
+            oldData = "$$$$\r\n"
+            newData = "> "+fieldname + "\r\n" + newValue + "\r\n\r\n" + OldData
+            self.records[recIndex]=re.sub(oldData,newData,self.records[recIndex],count=1)
+
+                                          
             
-## Testing code below. Uncomment to test        
-#testfile = "E:/Documents/Computational/ChemInformatics/ChelatingFragments.sdf"
-#B = SDreader("banana stand")
-#print(B)
-#S = SDreader(testfile)
-#print(S)
-#print('~'*80)
-#S0 = S.next()
-#print(S0)
-#print('~'*80)
-#S1 = S.next()
-#print(S1)
-#for record in S:
-#    print record
-#
+
+    
+
 # Testing readRecords
-source = "E:/Documents/Projects/Forma/HDAC/oxazolones_121514.sdf"
-sink = "E:/Documents/Projects/Forma/HDAC/oxazolones_121514_update.sdf"
+source = "E:/Documents/Projects/Vertex/Shipment97 NSNCF180_updated 042915.sdf"
+#sink = "E:/Documents/Projects/Vertex/Shipment97 NSNCF180_updated 042915-KLG.sdf"
 S = SDreader(source)
 print('found {0} records in {1}'.format(S.numRecords(),source))
-S.outputSDF(sink)
+#S.outputSDF(sink)
+print('found these fields in the SDfile')
+S.readFields()
+print(S.fields)
